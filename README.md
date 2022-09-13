@@ -1,4 +1,4 @@
-# Twitter Lake House
+# Twitter Stream
 
 Projeto realizado para aplicação de arquitetura definida para retorno de dados do Twitter.
 
@@ -26,11 +26,15 @@ Os dados serão armazenados para possibilitar a geração de insights:
 
 Os componentes utilizados na arquitetura para o projeto foram:
 
-- Airflow para orquestração do pipeline
+- Apache Kakfa para trazer os dados do Twitter
+
+- Apache Spark para processamento dos dados 
+
+- Airflow para orquestração do pipeline entre as camadas raw, bronze, silver e gold
 
 - S3 Bucket para armazenamento dos dados nas diversas camadas:
-  - RAW: disponibilização do dado bruto
-  - Bronze: dado com um tratamento inicial e pronto para ser consumido
+  - RAW: disponibilização do dado bruto pelo kafka
+  - Bronze: dado com um tratamento inicial para definir schema e mais estruturado para as demais etapas
   - Silver: dado com melhor tratamento que possibilita um consumo mais facilitado
   - Gold: dado disponibilizado em formatos pré-definidos para possibilitar o consumo por DataViz.
   
@@ -40,9 +44,7 @@ Os componentes utilizados na arquitetura para o projeto foram:
 
 ### 3.1 Coleta de dados
 
-Inicialmente, é feita a coleta de dados pela API disponibilizada pelo Twitter. Utilizando Python e a biblioteca requests, realizamos requisições ao Twitter e salvamos os dados no formato JSON, no datalake com o Apache Spark em Delta.
-
-Os dados brutos foram salvos inicialmente em formato .json, pois possuem uma estrutura complexa para serem salvos em .parquet. Os scripts criados para esta etapa estão disponíveis em .
+Inicialmente, é feita a coleta de dados pela API disponibilizada pelo Twitter, sendo chamada pelo Apache Kafka. Utilizando Python, realizamos requisições ao Twitter e os dados são disponibilizados para consumo no kafka. Após o processamento com Spark, os dados são armazenados no formato JSON, no bucket S3.
 
 
 ### 3.2 Ingestão de dados para a camada Bronze
@@ -51,8 +53,6 @@ Com os dados coletados e armazenados na camada raw, podemos efetuar transformaç
 
 Durante essa fase, em um ambiente profissional, é feita também a classificação de dados sensíveis que deverão ser mascarados ou mesmo omitidos nessa camada.
 
-Os scripts desse step estão em
-
 
 ### 3.3 Tratamento de dados para a camada Silver
 
@@ -60,14 +60,10 @@ Agora que temos na camada bronze uma forma mais fácil e otimizada para consumir
 
 Utilizamos um script de template para realizar as ingestões em Delta a partir de queries SQL. 
 
-Esse script encontra-se em 
-
 
 ### 3.4 Disponibilização de dados na camada Gold
 
 Mesmo com dados em visões mais analíticas e sumarizadas, ainda existe necessidade de disponibilização de dados em formato multidimensional para facilitar o consumo por algumas ferramentas de DataViz.
 
 Na camada Gold, são feitas disponibilizações sob demanda para determinadas áreas e requisições. Para tal, é feita uma modelagem de dados de acordo com a necessidade e os dados são ingeridos a partir da Silver.
-
-O script desse step encontra-se em 
 
