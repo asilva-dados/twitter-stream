@@ -1,0 +1,5 @@
+tweepy
+kafka-python
+boto3
+pandas
+delta-spark
